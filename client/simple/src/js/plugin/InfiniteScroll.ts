@@ -60,7 +60,7 @@ export default class InfiniteScroll extends Plugin {
           urlsElement.appendChild(document.createElement("hr"));
         }
 
-        urlsElement.append(...Array.from(articleList));
+        urlsElement.append(...articleList);
 
         if (nextPaginationElement) {
           const results = document.querySelector<HTMLElement>("#results");
@@ -83,19 +83,17 @@ export default class InfiniteScroll extends Plugin {
       rootMargin: "320px"
     };
 
-    const observer: IntersectionObserver = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+    const observer: IntersectionObserver = new IntersectionObserver(async (entries: IntersectionObserverEntry[]) => {
       const [paginationEntry] = entries;
 
       if (paginationEntry?.isIntersecting) {
         observer.unobserve(paginationEntry.target);
 
-        void loadNextPage(() => {
+        await loadNextPage(() => {
           const nextObservedElement = document.querySelector<HTMLElement>(observedSelector);
           if (nextObservedElement) {
             observer.observe(nextObservedElement);
           }
-        }).then(() => {
-          // wait until promise is resolved
         });
       }
     }, intersectionObserveOptions);
