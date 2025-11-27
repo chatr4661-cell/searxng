@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:6-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SEARX_SETTINGS_PATH=/etc/searxng/settings.yml
+      - SEARX_ENGINES_PATH=/etc/searxng/engines
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./searx_settings:/etc/searxng
+    depends_on:
+      - redis
+
+  render-service:
+    image: mcr.microsoft.com/playwright/python:1.36.0
+    container_name: render-service
+    restart: unless-stopped
+    volumes:
+      - ./render_service:/app
+    working_dir: /app
+    command: python3 server.py
+    ports:
+      - "3000:3000"
+
+volumes:
+  redis_data:
