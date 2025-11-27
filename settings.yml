@@ -1,0 +1,730 @@
+# searx_engines_india.yml
+# Drop into SearxNG config or merge into your settings.yml (engines:)
+# NOTE: This uses a normalized schema:
+# - id: unique engine id
+# - name: display name
+# - type: search | api | scrape  (search = prebuilt provider; api = official API; scrape = HTML scraping)
+# - country: IN or global
+# - category: list of categories
+# - base_url: domain base
+# - search_path: URL path template (use {query}) or API endpoint
+# - method: GET/POST
+# - headers: optional
+# - params: optional query param dictionary
+# - parser: {format: css/xpath/json, entries: {title: selector, url: selector, snippet: selector, extra: selector}}
+# - rate_limit: Hints for throttle (requests/sec or per minute)
+# - notes: human notes (API keys, login required, anti-bot)
+#
+# Adapt selectors and params to whatever the site currently uses — sites change frequently.
+
+engines:
+  # ---------- General web search (foundation) ----------
+  google:
+    name: "Google (web)"
+    type: "search"
+    country: "global"
+    category: ["web","general"]
+    notes: "Use direct Google adapters only if you have access; otherwise use other search providers."
+
+  bing:
+    name: "Bing (web)"
+    type: "search"
+    country: "global"
+    category: ["web","general"]
+
+  duckduckgo:
+    name: "DuckDuckGo"
+    type: "search"
+    country: "global"
+    category: ["privacy","web","general"]
+
+  brave:
+    name: "Brave Search"
+    type: "search"
+    country: "global"
+    category: ["web","general"]
+
+  # ---------- Food Delivery ----------
+  zomato:
+    name: "Zomato - restaurants"
+    type: "scrape"
+    country: "IN"
+    category: ["food","restaurants","delivery"]
+    base_url: "https://www.zomato.com"
+    search_path: "/search?q={query}"
+    method: "GET"
+    headers:
+      User-Agent: "Mozilla/5.0 (compatible; SearxNG/1.0; +https://example.org)"
+    parser:
+      format: "css"
+      entries:
+        title: ".result-title a::text"
+        url: ".result-title a::attr(href)"
+        snippet: ".res-snippet::text"
+        rating: ".rating-value::text"
+    rate_limit: "1/s"
+    notes: "Zomato uses dynamic rendering; selector accuracy may vary."
+
+  swiggy:
+    name: "Swiggy - restaurants"
+    type: "scrape"
+    country: "IN"
+    category: ["food","restaurants","delivery"]
+    base_url: "https://www.swiggy.com"
+    search_path: "/search?q={query}"
+    method: "GET"
+    parser:
+      format: "css"
+      entries:
+        title: "a._1j_Yo::text"
+        url: "a._1j_Yo::attr(href)"
+        snippet: "div._1gURa::text"
+        rating: "div._3LWZl::text"
+    rate_limit: "1/s"
+    notes: "Swiggy may require rendering; consider using an API partner."
+
+  dominos:
+    name: "Dominos India"
+    type: "scrape"
+    country: "IN"
+    category: ["food","restaurants"]
+    base_url: "https://www.dominos.co.in"
+    search_path: "/search?q={query}"
+    method: "GET"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-title::text"
+        url: ".product-title a::attr(href)"
+        snippet: ".product-desc::text"
+    rate_limit: "1/s"
+
+  # ---------- Groceries ----------
+  blinkit:
+    name: "Blinkit"
+    type: "scrape"
+    country: "IN"
+    category: ["grocery","delivery"]
+    base_url: "https://www.blinkit.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-title::text"
+        url: ".product-link::attr(href)"
+        price: ".product-price::text"
+    notes: "Blinkit uses dynamic JS; may need server-side rendering."
+
+  zepto:
+    name: "Zepto"
+    type: "scrape"
+    country: "IN"
+    category: ["grocery","delivery"]
+    base_url: "https://www.zepto.co"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".productName::text"
+        url: ".productAnchor::attr(href)"
+        price: ".productPrice::text"
+
+  bigbasket:
+    name: "BigBasket"
+    type: "scrape"
+    country: "IN"
+    category: ["grocery","delivery"]
+    base_url: "https://www.bigbasket.com"
+    search_path: "/rd-search/?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-desc::text"
+        url: "a.ng-binding::attr(href)"
+        price: ".discnt-price::text"
+    rate_limit: "1/m"
+
+  # ---------- Shopping & Marketplaces ----------
+  flipkart:
+    name: "Flipkart"
+    type: "scrape"
+    country: "IN"
+    category: ["shopping","marketplace"]
+    base_url: "https://www.flipkart.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "a._2rpwqI::text"
+        url: "a._2rpwqI::attr(href)"
+        price: "div._30jeq3::text"
+        rating: "div._3LWZlK::text"
+    notes: "Flipkart blocks scrapers; use API or proxy pool."
+
+  amazon_in:
+    name: "Amazon India"
+    type: "scrape"
+    country: "IN"
+    category: ["shopping","marketplace"]
+    base_url: "https://www.amazon.in"
+    search_path: "/s?k={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "h2.a-size-mini a.a-link-normal::text"
+        url: "h2.a-size-mini a.a-link-normal::attr(href)"
+        price: ".a-price-whole::text"
+    notes: "Amazon aggressively rate-limits; prefer affiliate APIs."
+
+  myntra:
+    name: "Myntra"
+    type: "scrape"
+    country: "IN"
+    category: ["fashion","shopping"]
+    base_url: "https://www.myntra.com"
+    search_path: "/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-product::text"
+        url: ".product-base::attr(href)"
+        price: ".product-price::text"
+
+  nykaa:
+    name: "Nykaa"
+    type: "scrape"
+    country: "IN"
+    category: ["beauty","shopping"]
+    base_url: "https://www.nykaa.com"
+    search_path: "/search?keyword={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-title::text"
+        url: ".product-wrapper a::attr(href)"
+        price: ".price::text"
+
+  # ---------- Jobs ----------
+  naukri:
+    name: "Naukri"
+    type: "scrape"
+    country: "IN"
+    category: ["jobs","careers"]
+    base_url: "https://www.naukri.com"
+    search_path: "/jobs-listings?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".jobTitle a::text"
+        url: ".jobTitle a::attr(href)"
+        company: ".companyInfo::text"
+        location: ".location::text"
+    rate_limit: "1/s"
+    notes: "Naukri uses heavy anti-bot detection; use API/token if available."
+
+  indeed_in:
+    name: "Indeed India"
+    type: "scrape"
+    country: "IN"
+    category: ["jobs","careers"]
+    base_url: "https://in.indeed.com"
+    search_path: "/jobs?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".jobTitle a::text"
+        url: ".jobTitle a::attr(href)"
+        snippet: ".job-snippet::text"
+
+  linkedin_jobs:
+    name: "LinkedIn Jobs"
+    type: "scrape"
+    country: "global"
+    category: ["jobs","careers"]
+    base_url: "https://www.linkedin.com"
+    search_path: "/jobs/search/?keywords={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".result-card__title::text"
+        url: ".result-card__full-card-link::attr(href)"
+    notes: "LinkedIn rate-limits heavily and requires login for full data."
+
+  apna:
+    name: "Apna"
+    type: "scrape"
+    country: "IN"
+    category: ["jobs","blue-collar"]
+    base_url: "https://www.apna.co"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".job-card__title::text"
+        url: ".job-card__link::attr(href)"
+
+  # ---------- Healthcare ----------
+  practo:
+    name: "Practo (doctors, clinics)"
+    type: "api"
+    country: "IN"
+    category: ["healthcare","doctors","hospitals"]
+    base_url: "https://www.practo.com"
+    search_path: "/search/{query}"
+    method: "GET"
+    parser:
+      format: "css"
+      entries:
+        title: ".listing-doctor__name::text"
+        url: ".listing-doctor__name a::attr(href)"
+        specialization: ".doctor-specialization::text"
+        rating: ".rating::text"
+    notes: "Practo has APIs for partners. Use official API when possible."
+
+  1mg:
+    name: "Tata 1mg (medicines)"
+    type: "scrape"
+    country: "IN"
+    category: ["pharmacy","medicine"]
+    base_url: "https://www.1mg.com"
+    search_path: "/search/all?name={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".col-md-9 .drug-name::text"
+        url: ".col-md-9 a::attr(href)"
+        price: ".price::text"
+    notes: "1mg provides APIs for some partners."
+
+  pharmeasy:
+    name: "PharmEasy"
+    type: "scrape"
+    country: "IN"
+    category: ["pharmacy","medicine"]
+    base_url: "https://pharmeasy.in"
+    search_path: "/search/all?search={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".style__itemName::text"
+        url: ".style__itemLink::attr(href)"
+        price: ".style__price::text"
+
+  netmeds:
+    name: "Netmeds"
+    type: "scrape"
+    country: "IN"
+    category: ["pharmacy","medicine"]
+    base_url: "https://www.netmeds.com"
+    search_path: "/catalogsearch/result/?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "h2.product-name a::text"
+        url: "h2.product-name a::attr(href)"
+        price: ".price::text"
+
+  # ---------- Travel & Mobility ----------
+  irctc:
+    name: "IRCTC train (search)"
+    type: "api"
+    country: "IN"
+    category: ["travel","trains"]
+    base_url: "https://www.irctc.co.in"
+    search_path: "/eticketing/trainSearch?key={query}"
+    method: "GET"
+    parser:
+      format: "json"
+      entries:
+        train_name: "trains[*].name"
+        train_no: "trains[*].number"
+        source: "trains[*].from"
+        destination: "trains[*].to"
+    notes: "IRCTC official APIs exist for partners; scraping is not recommended."
+
+  redbus:
+    name: "RedBus"
+    type: "scrape"
+    country: "IN"
+    category: ["travel","buses"]
+    base_url: "https://www.redbus.in"
+    search_path: "/search/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".travels::text"
+        url: ".bus-link::attr(href)"
+        price: ".fare::text"
+
+  makemytrip:
+    name: "MakeMyTrip"
+    type: "scrape"
+    country: "IN"
+    category: ["travel","flights","hotels"]
+    base_url: "https://www.makemytrip.com"
+    search_path: "/hotels/search?city={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".hotelCard::text"
+        url: "a.hotelCard::attr(href)"
+        price: ".actualPrice::text"
+
+  ola:
+    name: "Ola (rides)"
+    type: "scrape"
+    country: "IN"
+    category: ["mobility","taxi"]
+    base_url: "https://www.olacabs.com"
+    search_path: "/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".service-name::text"
+        url: ".service-link::attr(href)"
+
+  uber:
+    name: "Uber (India)"
+    type: "scrape"
+    country: "IN"
+    category: ["mobility","taxi"]
+    base_url: "https://www.uber.com"
+    search_path: "/in/en/search/?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "h1::text"
+        url: "link[rel='canonical']::attr(href)"
+
+  # ---------- Local Services & Business Directories ----------
+  justdial:
+    name: "JustDial - local businesses"
+    type: "scrape"
+    country: "IN"
+    category: ["local","services","directory"]
+    base_url: "https://www.justdial.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".jcn::text"
+        url: ".jcn::attr(href)"
+        snippet: ".rsn::text"
+        phone: ".contact-info::text"
+    rate_limit: "1/s"
+    notes: "JustDial often returns results embedded in JSON; parse accordingly."
+
+  sulekha:
+    name: "Sulekha - services"
+    type: "scrape"
+    country: "IN"
+    category: ["local","services","directory"]
+    base_url: "https://www.sulekha.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".srp-card__title::text"
+        url: ".srp-card__link::attr(href)"
+        rating: ".rating::text"
+
+  urbancompany:
+    name: "Urban Company"
+    type: "scrape"
+    country: "IN"
+    category: ["local","services","home"]
+    base_url: "https://www.urbancompany.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".card-title::text"
+        url: ".card a::attr(href)"
+        price: ".price::text"
+    notes: "Urban Company may require JS."
+
+  # ---------- Education & Colleges ----------
+  collegedunia:
+    name: "CollegeDunia"
+    type: "scrape"
+    country: "IN"
+    category: ["education","colleges","courses"]
+    base_url: "https://collegedunia.com"
+    search_path: "/search/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".college-name::text"
+        url: ".college-name a::attr(href)"
+        rating: ".rating::text"
+        city: ".college-city::text"
+
+  shiksha:
+    name: "Shiksha - colleges & courses"
+    type: "scrape"
+    country: "IN"
+    category: ["education","colleges","courses"]
+    base_url: "https://www.shiksha.com"
+    search_path: "/search?keyword={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".srp-card__title::text"
+        url: ".srp-card__link::attr(href)"
+        snippet: ".srp-card__desc::text"
+
+  byjus:
+    name: "Byju's / EdTech"
+    type: "scrape"
+    country: "IN"
+    category: ["education","edtech"]
+    base_url: "https://www.byjus.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "h2::text"
+        url: "a::attr(href)"
+
+  unacademy:
+    name: "Unacademy"
+    type: "scrape"
+    country: "IN"
+    category: ["education","edtech"]
+    base_url: "https://unacademy.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".search-result__title::text"
+        url: ".search-result__link::attr(href)"
+
+  coursera:
+    name: "Coursera"
+    type: "scrape"
+    country: "global"
+    category: ["education","courses"]
+    base_url: "https://www.coursera.org"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".color-primary-text::text"
+        url: "a.rc-DesktopSearchCard::attr(href)"
+
+  # ---------- Real Estate ----------
+  magicbricks:
+    name: "MagicBricks"
+    type: "scrape"
+    country: "IN"
+    category: ["real-estate","housing"]
+    base_url: "https://www.magicbricks.com"
+    search_path: "/search/results?keyword={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".mb-srp__title::text"
+        url: ".mb-srp__link::attr(href)"
+        price: ".mb-price::text"
+
+  housing:
+    name: "Housing.com"
+    type: "scrape"
+    country: "IN"
+    category: ["real-estate","housing"]
+    base_url: "https://housing.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".listingCard__title::text"
+        url: ".listingCard__link::attr(href)"
+        price: ".listingCard__price::text"
+
+  nobroker:
+    name: "NoBroker"
+    type: "scrape"
+    country: "IN"
+    category: ["real-estate","housing"]
+    base_url: "https://www.nobroker.in"
+    search_path: "/search/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".card-title::text"
+        url: ".card a::attr(href)"
+        price: ".price::text"
+
+  # ---------- Vehicles (cars, bikes) ----------
+  cardekho:
+    name: "CarDekho"
+    type: "scrape"
+    country: "IN"
+    category: ["vehicles","cars"]
+    base_url: "https://www.cardekho.com"
+    search_path: "/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".gsc-thumbnail-inside::text"
+        url: ".gsc-thumbnail-inside a::attr(href)"
+        price: ".price::text"
+
+  cars24:
+    name: "Cars24"
+    type: "scrape"
+    country: "IN"
+    category: ["vehicles","cars"]
+    base_url: "https://www.cars24.com"
+    search_path: "/search/{query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".tileTitle::text"
+        url: ".tileLink::attr(href)"
+        price: ".price::text"
+
+  spinny:
+    name: "Spinny"
+    type: "scrape"
+    country: "IN"
+    category: ["vehicles","cars"]
+    base_url: "https://www.spinny.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".title::text"
+        url: ".card a::attr(href)"
+        price: ".price::text"
+
+  # ---------- Entertainment (OTT & streaming) ----------
+  hotstar:
+    name: "Disney+ Hotstar"
+    type: "scrape"
+    country: "IN"
+    category: ["entertainment","ott"]
+    base_url: "https://www.hotstar.com"
+    search_path: "/in/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".title::text"
+        url: "a::attr(href)"
+        snippet: ".subtext::text"
+    notes: "Requires JS for modern pages."
+
+  jio_cinema:
+    name: "JioCinema"
+    type: "scrape"
+    country: "IN"
+    category: ["entertainment","ott"]
+    base_url: "https://www.jiocinema.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".title::text"
+        url: ".tile a::attr(href)"
+
+  prime_video:
+    name: "Prime Video"
+    type: "scrape"
+    country: "IN"
+    category: ["entertainment","ott"]
+    base_url: "https://www.primevideo.com"
+    search_path: "/search/ref=atv_sr_sug_1?_encoding=UTF8&phrase={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".av-beard-title::text"
+        url: "a::attr(href)"
+
+  # ---------- Finance & Payments (Banks, Wallets) ----------
+  paytm:
+    name: "Paytm"
+    type: "scrape"
+    country: "IN"
+    category: ["payments","wallets","marketplace"]
+    base_url: "https://paytm.com"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".product-title::text"
+        url: ".product-link::attr(href)"
+        price: ".price::text"
+
+  google_pay:
+    name: "Google Pay - merchant info"
+    type: "scrape"
+    country: "IN"
+    category: ["payments","wallets"]
+    base_url: "https://g.co/pay"
+    search_path: "/{query}"
+
+  # ---------- Government services & Public portals ----------
+  dgft:
+    name: "Gov - example (services)"
+    type: "scrape"
+    country: "IN"
+    category: ["govt","services"]
+    base_url: "https://www.india.gov.in"
+    search_path: "/search?query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: "h3::text"
+        url: "a::attr(href)"
+        snippet: "p::text"
+    notes: "Add specific government site engines (passportindia.gov.in, nic.in, income-tax, etc.)"
+
+  # ---------- Other high-value / vertical engines ----------
+  # Local deals and coupons
+  nearbuy:
+    name: "Nearbuy"
+    type: "scrape"
+    country: "IN"
+    category: ["deals","local"]
+    base_url: "https://www.nearbuy.com"
+    search_path: "/search?search_query={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".dealTitle::text"
+        url: ".dealLink::attr(href)"
+        price: ".dealPrice::text"
+
+  coupons:
+    name: "Coupon aggregators (generic)"
+    type: "scrape"
+    country: "IN"
+    category: ["deals","coupons"]
+    base_url: "https://www.coupons.com"
+    search_path: "/search?q={query}"
+    parser:
+      format: "css"
+      entries:
+        title: ".coupon-title::text"
+        url: ".coupon-link::attr(href)"
+        snippet: ".coupon-desc::text"
+
+  # ---------- Dev & Admin options ----------
+  placeholder_template:
+    name: "Template - add engine"
+    type: "scrape"
+    country: "IN"
+    category: ["template"]
+    base_url: "https://example.com"
+    search_path: "/search?q={query}"
+    method: "GET"
+    parser:
+      format: "css"
+      entries:
+        title: ".result-title::text"
+        url: ".result-title a::attr(href)"
+        snippet: ".result-snippet::text"
+    rate_limit: "1/s"
+    notes: "Duplicate and edit this entry to add more specific engines quickly."
+
+# End of engines
