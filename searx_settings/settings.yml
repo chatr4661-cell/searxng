@@ -1,0 +1,33 @@
+server:
+  bind_address: 0.0.0.0
+  port: 8080
+
+ui:
+  site_name: "Chatr Search India"
+  tagline: "India-first Meta Search Engine"
+
+search:
+  timeout: 12
+  max_results: 10
+  concurrent_engine_requests: 6
+  request_retries: 1
+
+caching:
+  backend: redis
+  ttl: 900
+
+rendering:
+  javascript_renderer: "http://render-service:3000/render"
+
+categories:
+  - name: local
+  - name: food
+  - name: healthcare
+  - name: jobs
+  - name: education
+  - name: shopping
+  - name: travel
+  - name: services
+  - name: gov
+
+engines_path: /etc/searxng/engines
