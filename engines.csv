@@ -1,0 +1,41 @@
+# gen_engines.py
+import csv
+import yaml
+from collections import OrderedDict
+
+input_csv = "engines.csv"
+output_yaml = "searx_engines_generated.yml"
+
+engines = OrderedDict()
+
+with open(input_csv, newline='', encoding='utf-8') as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        eid = row['id'].strip()
+        if not eid:
+            continue
+        engines[eid] = {
+            'name': row['name'],
+            'type': row.get('type','scrape'),
+            'country': row.get('country','IN'),
+            'category': [c.strip() for c in row.get('category','').split('|') if c.strip()],
+            'base_url': row.get('base_url',''),
+            'search_path': row.get('search_path',''),
+            'method': row.get('method','GET'),
+            'headers': {},
+            'parser': {
+                'format': row.get('parser_format','css'),
+                'entries': {
+                    'title': row.get('title_selector',''),
+                    'url': row.get('url_selector',''),
+                    'snippet': row.get('snippet_selector',''),
+                }
+            },
+            'rate_limit': row.get('rate_limit','1/s'),
+            'notes': row.get('notes','')
+        }
+
+with open(output_yaml, 'w', encoding='utf-8') as out:
+    yaml.dump({'engines': engines}, out, allow_unicode=True, sort_keys=False)
+
+print("Generated", output_yaml)
